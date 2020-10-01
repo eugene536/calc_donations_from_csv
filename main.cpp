@@ -7,6 +7,7 @@
 #include <vector>
 #include <sstream>
 #include <map>
+
 class ClusterInfo {
 public:
   explicit ClusterInfo(uint32_t cnt_servers) noexcept
@@ -39,7 +40,6 @@ private:
 ClusterInfo cluster_of_collectors{5};
 ClusterInfo cluster_of_processors{5};
 ClusterInfo cluster_of_aggregators{1};
-
 
 struct Donor {
   std::string id_;
@@ -186,15 +186,8 @@ public:
     std::string donors_csv_part = get_my_part_of_csv(donors_csv);
     std::string donations_csv_part = get_my_part_of_csv(donations_csv);
 
-//    std::cout << std::endl << cur_server_id_ << std::endl;
-//    std::cout << "`" << donors << "`" << std::endl;
-//    std::cout << "`" << donations << "`" << std::endl;
-
     auto donors = parse_csv<Donor>(std::move(donors_csv_part));
     auto donations = parse_csv<Donation>(std::move(donations_csv_part));
-
-//    for (auto &d : donors) std::cout << d.id() << ";" << d.state_ << std::endl;
-//    for (auto &d : donations) std::cout << d.id() << ";" << d.amount_ << std::endl;
 
     send_to_processors(std::move(donors), "donors");
     send_to_processors(std::move(donations), "donations");
@@ -227,8 +220,6 @@ private:
     // it must be greater than any line in csv file, we assume that every line is <= max_line_length bytes
     auto bytes_per_server = std::max(size_in_bytes / cluster_of_collectors.cnt_servers(), max_line_length);
     auto from = cur_server_id_ * bytes_per_server;
-
-//    std::cout << "filesize: " << size_in_bytes << "; per-server:" <<  bytes_per_server << ";from:" << from << std::endl;
 
     // length of line is definitely less than 1000 bytes
     std::array<char, 1000> temp_buffer{};
