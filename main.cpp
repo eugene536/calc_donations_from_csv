@@ -23,8 +23,17 @@ public:
   template<class Object>
   void send_object(const Object &object, const std::string &prefix) const {
     auto server_id = get_cluster_id(object.id());
-    std::ofstream processor_socket(prefix + "." + std::to_string(server_id) + ".csv", std::ios::out | std::ios::app);
-    processor_socket << object << "\n";
+    auto server_url = prefix + "." + std::to_string(server_id) + ".csv";
+
+    auto stream_it = streams_cache.find(server_url);
+    if (stream_it == streams_cache.end()) {
+      stream_it = streams_cache.emplace(server_url, std::ofstream(server_url, std::ios::out | std::ios::app)).first;
+    }
+    stream_it->second << object << "\n";
+  }
+
+  void flush() {
+    streams_cache.clear();
   }
 
   uint64_t get_cluster_id(std::string_view id) const {
@@ -33,6 +42,7 @@ public:
   }
 
 private:
+  mutable std::map<std::string, std::ofstream> streams_cache;
   // got from cluster config
   uint32_t cnt_servers_{5};
 };
@@ -191,6 +201,7 @@ public:
 
     send_to_processors(std::move(donors), "donors");
     send_to_processors(std::move(donations), "donations");
+    cluster_of_processors.flush();
 
     return 0;
   }
@@ -280,6 +291,7 @@ public:
         cluster_of_aggregators.send_object(StateDonation{donor.state_, donation_it->amount_}, "aggregator");
       }
     }
+    cluster_of_aggregators.flush();
 
     return 0;
   }
