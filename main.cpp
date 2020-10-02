@@ -326,27 +326,27 @@ private:
 };
 
 void simple_test() {
-   for (uint32_t i = 0; i < cluster_of_collectors.cnt_servers(); ++i) {
-     DonatesCollector{i}.run();
-   }
-   for (uint32_t i = 0; i < cluster_of_processors.cnt_servers(); ++i) {
-     DonatesProcessor{i}.run();
-   }
-   for (uint32_t i = 0; i < cluster_of_aggregators.cnt_servers(); ++i) {
-     DonatesAggregator{i}.run();
-   }
+  auto start = clock() * 1.0;
+  for (uint32_t i = 0; i < cluster_of_collectors.cnt_servers(); ++i) {
+    DonatesCollector{i}.run();
+  }
+  std::cout << "Time of one collector: " << (clock() - start) / CLOCKS_PER_SEC / cluster_of_collectors.cnt_servers() << " seconds" << std::endl;
+
+  start = clock() * 1.0;
+  for (uint32_t i = 0; i < cluster_of_processors.cnt_servers(); ++i) {
+    DonatesProcessor{i}.run();
+  }
+  std::cout << "Time of one processor: " << (clock() - start) / CLOCKS_PER_SEC / cluster_of_processors.cnt_servers() << " seconds" << std::endl;
+
+  start = clock() * 1.0;
+  for (uint32_t i = 0; i < cluster_of_aggregators.cnt_servers(); ++i) {
+    DonatesAggregator{i}.run();
+  }
+  std::cout << "Time of one aggregator: " << (clock() - start) / CLOCKS_PER_SEC / cluster_of_aggregators.cnt_servers() << " seconds" << std::endl;
 }
 
 int main(int argc, char *args[]) {
   simple_test();
-  return 0;
-  if (args[1][0] == '0') {
-    DonatesCollector{2}.run();
-  } else if (args[1][0] == '1') {
-    DonatesProcessor{2}.run();
-  } else if (args[1][0] == '2') {
-    DonatesAggregator{0}.run();
-  }
   return 0;
 
   assert(argc >= 3);
